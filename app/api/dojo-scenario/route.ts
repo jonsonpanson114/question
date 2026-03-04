@@ -59,7 +59,7 @@ ${bookContext}${entryContext}${ctx.instruction}
 - シナリオ本文だけを出力し、前置きや説明は一切不要`;
 
   try {
-    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
     const result = await model.generateContent(prompt);
     const scenario = result.response.text().trim();
     return Response.json({ scenario });
