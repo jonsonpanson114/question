@@ -4,6 +4,7 @@ import { useState, useEffect, use, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { FeedbackData } from "@/app/api/dojo-feedback/route";
+import NotificationSettings from "../components/NotificationSettings";
 
 // ─── 定数 ──────────────────────────────────────────────────
 const ROUNDS_PER_SESSION = 3;
@@ -433,8 +434,14 @@ export default function SessionPage({
   const [conversation, setConversation]   = useState<Message[]>([]);
   const [exchangeCount, setExchangeCount] = useState(0);
 
+  const [mounted, setMounted]         = useState(false);
+  const [showNotificationSettings, setShowNotificationSettings] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const convEndRef  = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // ─── エントリ読み込み（気づき＋読書） ───
   function loadEntries(mode: string): { entries: string[]; bookTitle?: string; bookAuthor?: string } {
@@ -644,7 +651,7 @@ export default function SessionPage({
     setPhase("complete");
   }
 
-  if (!meta) return null;
+  if (!meta || !mounted) return null;
 
   const canSubmit   = !!question.trim() && phase === "answering";
   const canEndRally = isRally && exchangeCount >= MIN_EXCHANGES && phase === "answering";
@@ -698,12 +705,41 @@ export default function SessionPage({
               {meta.label}
             </p>
           </div>
-          {phase !== "complete" && (
-            isRally
-              ? <RoundDots current={exchangeCount} total={MAX_EXCHANGES} />
-              : <RoundDots current={currentRound} total={ROUNDS_PER_SESSION} />
-          )}
-          {phase === "complete" && <div style={{ width: "60px" }} />}
+          <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+            <button
+              onClick={() => setShowNotificationSettings(true)}
+              style={{
+                background: "none",
+                border: "none",
+                cursor: "pointer",
+                padding: "0.25rem",
+                opacity: 0.6,
+                transition: "opacity 0.2s",
+              }}
+              onMouseEnter={(e) => e.currentTarget.style.opacity = "1"}
+              onMouseLeave={(e) => e.currentTarget.style.opacity = "0.6"}
+              aria-label="通知設定"
+            >
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                style={{ color: "var(--dojo-ink)" }}
+              >
+                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+                <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+              </svg>
+            </button>
+            {phase !== "complete" && (
+              isRally
+                ? <RoundDots current={exchangeCount} total={MAX_EXCHANGES} />
+                : <RoundDots current={currentRound} total={ROUNDS_PER_SESSION} />
+            )}
+            {phase === "complete" && <div style={{ width: "20px" }} />}
+          </div>
         </div>
 
         {/* ─── 完了画面 ─── */}
@@ -1075,6 +1111,12 @@ export default function SessionPage({
           to { transform: rotate(360deg); }
         }
       `}</style>
+
+      {/* Notification Settings Modal */}
+      <NotificationSettings
+        isOpen={showNotificationSettings}
+        onClose={() => setShowNotificationSettings(false)}
+      />
     </div>
   );
 }

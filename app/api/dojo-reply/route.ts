@@ -1,7 +1,5 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
 import { NextRequest } from "next/server";
-
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
+import { createGeminiClient } from "../_lib/gemini";
 
 const MODE_PERSONA: Record<string, string> = {
   casual:   "友人・知人として、日常的な会話をしています。",
@@ -31,7 +29,10 @@ ${historyText}
 - 前置き・説明不要`;
 
   try {
-    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+    const model = createGeminiClient().getGenerativeModel({
+      model: "gemini-3-flash-preview",
+      generationConfig: { temperature: 1.0 },
+    });
     const result = await model.generateContent(prompt);
     const reply = result.response.text().trim();
     return Response.json({ reply });
@@ -40,3 +41,4 @@ ${historyText}
     return new Response("Failed to generate reply", { status: 500 });
   }
 }
+

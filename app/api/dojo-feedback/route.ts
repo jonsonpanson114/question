@@ -1,7 +1,5 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
 import { NextRequest } from "next/server";
-
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
+import { createGeminiClient } from "../_lib/gemini";
 
 const MODE_LABELS: Record<string, string> = {
   casual:     "日常雑談",
@@ -79,8 +77,8 @@ ${question}
   }
 
   try {
-    const model = genAI.getGenerativeModel({
-      model: "gemini-2.5-flash",
+    const model = createGeminiClient().getGenerativeModel({
+      model: "gemini-3-flash-preview",
       generationConfig: { responseMimeType: "application/json" },
     });
     const result = await model.generateContent(prompt);
@@ -92,3 +90,4 @@ ${question}
     return new Response("Failed to generate feedback", { status: 500 });
   }
 }
+

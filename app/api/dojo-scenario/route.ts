@@ -1,7 +1,5 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
 import { NextRequest } from "next/server";
-
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
+import { createGeminiClient } from "../_lib/gemini";
 
 const MODE_CONTEXTS: Record<string, { context: string; instruction: string }> = {
   casual: {
@@ -55,11 +53,15 @@ ${bookContext}${entryContext}${ctx.instruction}
 条件:
 - 日本語で自然な話し言葉
 - 具体的で、聴き手が問いを立てやすい内容
+- 重複を避け、毎回異なる新しいシチュエーションや人間関係を生成すること
 - 説明的すぎず、余白を残す
 - シナリオ本文だけを出力し、前置きや説明は一切不要`;
 
   try {
-    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+    const model = createGeminiClient().getGenerativeModel({
+      model: "gemini-3-flash-preview",
+      generationConfig: { temperature: 1.0 },
+    });
     const result = await model.generateContent(prompt);
     const scenario = result.response.text().trim();
     return Response.json({ scenario });
@@ -68,3 +70,4 @@ ${bookContext}${entryContext}${ctx.instruction}
     return new Response("Failed to generate scenario", { status: 500 });
   }
 }
+

@@ -73,3 +73,85 @@ self.addEventListener("fetch", (e) => {
 self.addEventListener("activate", (e) => {
   e.waitUntil(caches.delete(CACHE_NAME));
 });
+
+// Push event handler - receives push notifications from server
+self.addEventListener("push", (e) => {
+  if (!e.data) return;
+
+  try {
+    const data = e.data.json();
+
+    const options = {
+      body: data.body,
+      icon: "/icon-192.svg",
+      badge: "/icon-192.svg",
+      vibrate: [200, 100, 200],
+      tag: data.type || "default",
+      requireInteraction: true,
+      data: {
+        url: data.url || "/practice",
+        type: data.type || "default",
+      },
+      actions: [
+        {
+          action: "practice",
+          title: "練習を始める",
+          icon: "/icon-192.svg",
+        },
+        {
+          action: "close",
+          title: "閉じる",
+        },
+      ],
+    };
+
+    e.waitUntil(
+      self.registration.showNotification(data.title, options)
+    );
+  } catch (error) {
+    console.error("Push event error:", error);
+  }
+});
+
+// Notification click handler
+self.addEventListener("notificationclick", (e) => {
+  e.notification.close();
+
+  if (e.action === "practice") {
+    // Open practice page
+    e.waitUntil(
+      clients.openWindow("/practice")
+    );
+  } else if (e.action === "close") {
+    // Just close the notification
+    return;
+  } else {
+    // Default action: open the URL from notification data
+    const urlToOpen = e.notification.data?.url || "/";
+    e.waitUntil(
+      clients.openWindow(urlToOpen)
+    );
+  }
+});
+
+// Handle subscription refresh
+self.addEventListener("pushsubscriptionchange", (e) => {
+  e.waitUntil(
+    self.registration.pushManager.subscribe({
+      userVisibleOnly: true,
+    })
+    .then((subscription) => {
+      // Send new subscription to server
+      return fetch("/api/push/subscribe", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ subscription }),
+      });
+    })
+    .catch((error) => {
+      console.error("Subscription refresh failed:", error);
+    })
+  );
+});

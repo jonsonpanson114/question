@@ -1,7 +1,5 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
 import { NextRequest } from "next/server";
-
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
+import { createGeminiClient } from "../_lib/gemini";
 
 const SPEAKERS = {
   ハル: "30代の男性会社員。少し皮肉屋だが根は優しい。猫の「部長」とよく話す。口調は少しぶっきらぼうだがウィットがある。「俺は〜」という口調。",
@@ -32,10 +30,14 @@ ${entriesText}
 - 道場らしい、凛とした、余白のある表現で
 - 1〜2文、120文字以内
 - 説教がましくなく、そっと背中を押す言葉
+- 重複を避け、前回とは異なる切り口で伝えてください
 - 絵文字・署名は不要`;
 
   try {
-    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+    const model = createGeminiClient().getGenerativeModel({
+      model: "gemini-3-flash-preview",
+      generationConfig: { temperature: 1.0 },
+    });
     const result = await model.generateContent(prompt);
     const message = result.response.text().trim();
     return Response.json({ message, speaker });
@@ -44,3 +46,4 @@ ${entriesText}
     return new Response("Failed to generate message", { status: 500 });
   }
 }
+
