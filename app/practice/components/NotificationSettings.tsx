@@ -1,7 +1,7 @@
 // Component: NotificationSettings
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { usePushNotifications } from '../../_hooks/usePushNotifications';
 
 interface NotificationSettingsProps {
@@ -33,6 +33,17 @@ export default function NotificationSettings({
     eveningHour: preferences?.eveningHour ?? 21,
   });
 
+  useEffect(() => {
+    if (!preferences) return;
+
+    setLocalPrefs({
+      morningEnabled: preferences.morningEnabled,
+      morningHour: preferences.morningHour,
+      eveningEnabled: preferences.eveningEnabled,
+      eveningHour: preferences.eveningHour,
+    });
+  }, [preferences]);
+
   if (!isOpen) return null;
 
   const handleSubscribe = async () => {
@@ -47,13 +58,21 @@ export default function NotificationSettings({
   };
 
   const handleSavePreferences = async () => {
-    await updatePreferences(localPrefs);
-    alert('設定を保存しました');
+    try {
+      await updatePreferences(localPrefs);
+      alert('設定を保存しました');
+    } catch {
+      // Error message is shown by hook state.
+    }
   };
 
   const handleTestNotification = async () => {
-    await sendTestNotification();
-    alert('テスト通知を送信しました');
+    try {
+      await sendTestNotification();
+      alert('テスト通知を送信しました');
+    } catch {
+      // Error message is shown by hook state.
+    }
   };
 
   return (
@@ -235,3 +254,5 @@ export default function NotificationSettings({
     </div>
   );
 }
+
+

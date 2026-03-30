@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import NotificationSettings from "./components/NotificationSettings";
 
 // ─── 型 ────────────────────────────────────────────────────
 interface MessageCache {
@@ -245,6 +246,7 @@ export default function PracticePage() {
   const [message, setMessage]         = useState("");
   const [loadingMsg, setLoadingMsg]   = useState(true);
   const [selectedMode, setSelectedMode] = useState<ModeId | null>(null);
+  const [showNotificationSettings, setShowNotificationSettings] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -486,7 +488,7 @@ export default function PracticePage() {
           </div>
         </div>
 
-        {/* ─── フッター ─── */}
+                {/* ─── フッター ─── */}
         <div style={{
           borderTop: "1px solid var(--dojo-border)",
           paddingTop: "1.1rem",
@@ -502,46 +504,9 @@ export default function PracticePage() {
           }}>
             問いが深まると、木が育つ
           </p>
-          {/* 通知リクエストボタン */}
+          {/* 通知設定ボタン */}
           <button
-            onClick={async () => {
-              if (!("Notification" in window)) {
-                alert("このブラウザは通知をサポートしていません");
-                return;
-              }
-              const permission = await Notification.requestPermission();
-              if (permission === "granted") {
-                // 毎日18時に通知をスケジュール
-                const now = new Date();
-                const tomorrow = new Date(now);
-                tomorrow.setDate(tomorrow.getDate() + 1);
-                tomorrow.setHours(18);
-                tomorrow.setMinutes(0);
-
-                const notificationTime = tomorrow.getTime();
-                const ONE_DAY = 24 * 60 * 60 * 1000;
-
-                // ローカルストレージに通知時刻を保存
-                localStorage.setItem("dojo_next_notification", notificationTime.toString());
-
-                // Service Worker 経由で通知スケジュール
-                if ("serviceWorker" in navigator) {
-                  const registration = await navigator.serviceWorker.ready;
-                  if (registration) {
-                    registration.active?.postMessage({
-                      type: "SCHEDULE_NOTIFICATION",
-                      time: notificationTime,
-                      title: "今日の稽古、お疲れさまでした",
-                      body: "問いの道場で練習を始めましょう",
-                    });
-                  }
-                }
-
-                alert("毎日18時に練習リマインダーを設定しました");
-              } else {
-                alert("通知の許可が必要です");
-              }
-            }}
+            onClick={() => setShowNotificationSettings(true)}
             style={{
               background: "none",
               border: "1px solid var(--dojo-border)",
@@ -555,11 +520,16 @@ export default function PracticePage() {
               opacity: 0.7,
             }}
           >
-            毎日のリマインダーを設定
+            通知設定を開く
           </button>
         </div>
 
       </div>
+
+      <NotificationSettings
+        isOpen={showNotificationSettings}
+        onClose={() => setShowNotificationSettings(false)}
+      />
     </div>
   );
 }

@@ -152,7 +152,7 @@ export function usePushNotifications(): UsePushNotificationsReturn {
       if (!subscription) {
         subscription = await registration.pushManager.subscribe({
           userVisibleOnly: true,
-          applicationServerKey: convertedVapidKey,
+          applicationServerKey: convertedVapidKey as unknown as BufferSource,
         });
       }
 
@@ -280,10 +280,11 @@ export function usePushNotifications(): UsePushNotificationsReturn {
         throw new Error('Failed to send test notification');
       }
 
-      // Test notification sent successfully
+      return;
     } catch (err) {
       console.error('Test notification error:', err);
       setError('テスト通知の送信に失敗しました');
+      throw err;
     } finally {
       setIsLoading(false);
     }
@@ -317,3 +318,4 @@ function urlBase64ToUint8Array(base64String: string): Uint8Array {
 
   return outputArray;
 }
+
