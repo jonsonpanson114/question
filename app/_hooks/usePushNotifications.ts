@@ -140,8 +140,13 @@ export function usePushNotifications(): UsePushNotificationsReturn {
       const registration = await navigator.serviceWorker.ready;
 
       // Get VAPID public key from environment
-      const vapidPublicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY ||
-                             'BGw3wx1wE1qM1JWpk26ACPZx6VUSMqdeSAuRzraXF-NDarJ-01GQPEIfHCWVUY4GqWE_MtS7NIxyPIIURoN9pIo';
+      const vapidPublicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
+
+      if (!vapidPublicKey) {
+        setError('VAPID公開鍵が設定されていません');
+        setIsLoading(false);
+        return;
+      }
 
       // Convert VAPID key
       const convertedVapidKey = urlBase64ToUint8Array(vapidPublicKey);
@@ -318,4 +323,5 @@ function urlBase64ToUint8Array(base64String: string): Uint8Array {
 
   return outputArray;
 }
+
 

@@ -42,7 +42,7 @@ export async function GET() {
       initialized: false,
       tables: [],
       database_url: process.env.DATABASE_URL ? "configured" : "missing",
-      error: "Failed to inspect database",
+      error: error instanceof Error ? error.message : "Failed to inspect database",
     }, { status: 500 });
   }
 }
@@ -71,3 +71,4 @@ export async function POST(req: NextRequest) {
     return Response.json({ error: "Failed to initialize database" }, { status: 500 });
   }
 }
+

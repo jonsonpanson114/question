@@ -33,7 +33,7 @@ function scheduleNotification(targetTime, title, body) {
     // 既に過ぎている場合は即時通知
     self.registration.showNotification(title, {
       body,
-      icon: "/icon-192.svg",
+      icon: "/icon-192.png",
     });
     return;
   }
@@ -46,7 +46,7 @@ function scheduleNotification(targetTime, title, body) {
   const timeoutId = setTimeout(() => {
     self.registration.showNotification(title, {
       body,
-      icon: "/icon-192.svg",
+      icon: "/icon-192.png",
     });
   }, delay);
 
@@ -83,8 +83,8 @@ self.addEventListener("push", (e) => {
 
     const options = {
       body: data.body,
-      icon: "/icon-192.svg",
-      badge: "/icon-192.svg",
+      icon: "/icon-192.png",
+      badge: "/badge-monochrome-72.png",
       vibrate: [200, 100, 200],
       tag: data.type || "default",
       requireInteraction: true,
@@ -96,7 +96,7 @@ self.addEventListener("push", (e) => {
         {
           action: "practice",
           title: "練習を始める",
-          icon: "/icon-192.svg",
+          icon: "/icon-192.png",
         },
         {
           action: "close",
@@ -155,3 +155,5 @@ self.addEventListener("pushsubscriptionchange", (e) => {
     })
   );
 });
+
+

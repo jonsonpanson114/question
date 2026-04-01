@@ -1,10 +1,15 @@
 import webpush from "web-push";
 import type { PushPayload, PushSubscriptionRecord } from "./_types";
 
+function normalizeEnvValue(value: string | undefined): string | undefined {
+  if (!value) return undefined;
+  return value.trim().replace(/^['\"]|['\"]$/g, "");
+}
+
 function getVapidConfig(): { publicKey: string; privateKey: string; subject: string } {
-  const publicKey = process.env.VAPID_PUBLIC_KEY;
-  const privateKey = process.env.VAPID_PRIVATE_KEY;
-  const subject = process.env.VAPID_SUBJECT ?? "mailto:support@toi-no-dojo.local";
+  const publicKey = normalizeEnvValue(process.env.VAPID_PUBLIC_KEY ?? process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY);
+  const privateKey = normalizeEnvValue(process.env.VAPID_PRIVATE_KEY);
+  const subject = normalizeEnvValue(process.env.VAPID_SUBJECT) ?? "mailto:support@toi-no-dojo.local";
 
   if (!publicKey || !privateKey) {
     throw new Error("Missing VAPID_PUBLIC_KEY or VAPID_PRIVATE_KEY");

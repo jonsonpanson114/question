@@ -138,7 +138,7 @@ export default function NotificationSettings({
                     disabled={isLoading}
                     className="w-full bg-[var(--dojo-ink)] text-[var(--dojo-paper)] py-3 px-6 rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    {isLoading ? '処理中...' : '通知を開始する'}
+                    {isLoading ? '準備中...' : '稽古のリマインダーを受け取る'}
                   </button>
                 </div>
               ) : (

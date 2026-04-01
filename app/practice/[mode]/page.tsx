@@ -595,20 +595,23 @@ export default function SessionPage({
   async function submitRallyQuestion() {
     if (!question.trim() || phase !== "answering") return;
     const q = question.trim();
-    setQuestion("");
-    const newConv: Message[] = [...conversation, { role: "user", text: q }];
-    setConversation(newConv);
+    setQuestion("");  // 入力をクリア
+
     const newCount = exchangeCount + 1;
-    setExchangeCount(newCount);
 
     if (newCount >= MAX_EXCHANGES) {
-      await evaluateRally(newConv);
+      // 評価フェーズ：ユーザーメッセージを一時的に追加して評価
+      const newConv: Message[] = [...conversation, { role: "user", text: q }];
+      setConversation(newConv);
+      setExchangeCount(newCount);
+      await evaluateRally(newConv, true);  // ロールバック可能フラグ
       return;
     }
 
     setPhase("loading-reply");
     setError("");
     try {
+      const newConv: Message[] = [...conversation, { role: "user", text: q }];
       const res = await fetch("/api/dojo-reply", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -616,16 +619,19 @@ export default function SessionPage({
       });
       if (!res.ok) throw new Error();
       const data = await res.json();
+      // 成功時のみ会話履歴を更新
       setConversation([...newConv, { role: "ai", text: data.reply }]);
+      setExchangeCount(newCount);
       setPhase("answering");
       setTimeout(() => textareaRef.current?.focus(), 100);
     } catch {
-      setError("返答の生成に失敗しました。");
+      setError("返答の生成に失敗しました。もう一度入力してください。");
+      setQuestion(q);  // エラー時に元の質問を復元
       setPhase("answering");
     }
   }
 
-  async function evaluateRally(conv: Message[]) {
+  async function evaluateRally(conv: Message[], canRollback = false) {
     setPhase("evaluating");
     setError("");
     try {
@@ -639,8 +645,14 @@ export default function SessionPage({
       setFeedback(data);
       setPhase("feedback");
     } catch {
-      setError("評価の取得に失敗しました。もう一度お試しください。");
+      setError("評価の取得に失敗しました。もう一度入力してください。");
       setPhase("answering");
+      // エラー時：会話履歴とカウントをロールバック
+      if (canRollback) {
+        setConversation(conversation);
+        setExchangeCount(exchangeCount);
+        setQuestion(conv[conv.length - 1].text);  // 最後のユーザーメッセージを復元
+      }
     }
   }
 
@@ -870,7 +882,7 @@ export default function SessionPage({
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                       {canEndRally ? (
                         <button
-                          onClick={() => evaluateRally(conversation)}
+                          onClick={() => evaluateRally(conversation, false)}
                           style={{
                             background: "none",
                             border: "none",

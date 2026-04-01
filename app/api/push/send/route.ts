@@ -41,8 +41,10 @@ export async function POST(req: NextRequest) {
   }
 
   try {
+    // クエリパラメータまたはリクエストボディからtypeを取得
+    const queryType = req.nextUrl.searchParams.get("type");
     const body = (await req.json().catch(() => ({}))) as SendRequest;
-    const type = body.type ?? "evening";
+    const type = (queryType ?? body.type ?? "evening") as NotificationType;
 
     if (type !== "morning" && type !== "evening") {
       return Response.json({ error: "Invalid type" }, { status: 400 });
